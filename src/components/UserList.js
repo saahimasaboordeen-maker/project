@@ -3,300 +3,482 @@ import React, { useEffect, useState } from 'react';
 
 import { db } from '../firebase';
 
-import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import {
+    collection,
+    getDocs,
+    doc,
+    deleteDoc,
+    updateDoc
+} from 'firebase/firestore';
 
 function UserList() {
 
-const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState([]);
 
-const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
-const [editingUser, setEditingUser] = useState(null);
+    const [editingUser, setEditingUser] = useState(null);
 
-const [name, setName] = useState("");
+    const [name, setName] = useState("");
 
-const [email, setEmail] = useState("");
+    const [email, setEmail] = useState("");
 
-const [phone, setPhone] = useState("");
+    const [phone, setPhone] = useState("");
 
-// Fetch Data from Firebase
-useEffect(() => {
 
-    const fetchUsers = async () => {
+    // Fetch Data from Firebase
 
-        try {
+    useEffect(() => {
 
-            const querySnapshot = await getDocs(collection(db, "users"));
+        const fetchUsers = async () => {
 
-            const userData = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            try {
 
-            setUsers(userData);
+                const querySnapshot = await getDocs(collection(db, "users"));
 
-        } catch (error) {
+                const userData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
 
-            console.error("Error fetching users:", error);
+                setUsers(userData);
+
+            } catch (error) {
+
+                console.error("Error fetching users:", error);
+
+            }
+
+        };
+
+        fetchUsers();
+
+    }, []);
+
+
+    // Search Functionality
+
+    const filteredUsers = users.filter(user =>
+
+        (user.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+
+    );
+
+
+    // Sorting Functionality
+
+    const sortBy = (key) => {
+
+        const sorted = [...users].sort((a, b) => {
+
+            const valueA = (a[key] || "").toLowerCase();
+
+            const valueB = (b[key] || "").toLowerCase();
+
+            return valueA.localeCompare(valueB);
+
+        });
+
+        setUsers(sorted);
+
+    };
+
+
+    // Delete Functionality
+
+    const handleDelete = async (id) => {
+
+        if (window.confirm("Are you sure you want to delete this user?")) {
+
+            try {
+
+                await deleteDoc(doc(db, "users", id));
+
+                setUsers(users.filter(user => user.id !== id));
+
+                alert("User deleted successfully!");
+
+            } catch (err) {
+
+                console.error(err);
+
+                alert("Error deleting user");
+
+            }
 
         }
 
     };
 
-    fetchUsers();
 
-}, []);
+    // Edit Functionality
 
-// Search Functionality
-const filteredUsers = users.filter(user =>
-    (user.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-);
+    const handleEdit = (user) => {
 
-// Sorting Functionality
-const sortBy = (key) => {
+        setEditingUser(user);
 
-    const sorted = [...users].sort((a, b) => {
+        setName(user.name);
 
-        const valueA = (a[key] || "").toLowerCase();
-        const valueB = (b[key] || "").toLowerCase();
+        setEmail(user.email);
 
-        return valueA.localeCompare(valueB);
+        setPhone(user.phone);
 
-    });
+    };
 
-    setUsers(sorted);
 
-};
+    // Update Functionality
 
-// Delete Functionality
-const handleDelete = async (id) => {
+    const handleUpdate = async (e) => {
 
-    if (window.confirm("Are you sure you want to delete this user?")) {
+        e.preventDefault();
 
         try {
 
-            await deleteDoc(doc(db, "users", id));
+            const userRef = doc(db, "users", editingUser.id);
 
-            setUsers(users.filter(user => user.id !== id));
+            await updateDoc(userRef, {
 
-            alert("User deleted successfully!");
+                name,
+                email,
+                phone
+
+            });
+
+            setUsers(users.map(u =>
+
+                u.id === editingUser.id
+
+                    ? { ...u, name, email, phone }
+
+                    : u
+
+            ));
+
+            setEditingUser(null);
+
+            setName("");
+
+            setEmail("");
+
+            setPhone("");
+
+            alert("User updated successfully!");
 
         } catch (err) {
 
             console.error(err);
 
-            alert("Error deleting user");
+            alert("Error updating user");
 
         }
 
-    }
+    };
 
-};
 
-// Edit Functionality
-const handleEdit = (user) => {
+    return (
 
-    setEditingUser(user);
+        <div className="container mt-5 mb-5">
 
-    setName(user.name);
+            {/* Main Card */}
 
-    setEmail(user.email);
+            <div className="card shadow p-4">
 
-    setPhone(user.phone);
+                <h2 className="text-center mb-4 text-primary">
 
-};
+                    Registered Users
 
-// Update Functionality
-const handleUpdate = async (e) => {
+                </h2>
 
-    e.preventDefault();
 
-    try {
+               
 
-        const userRef = doc(db, "users", editingUser.id);
 
-        await updateDoc(userRef, {
-            name,
-            email,
-            phone
-        });
+                {/* Search Input */}
 
-        setUsers(users.map(u =>
-            u.id === editingUser.id
-                ? { ...u, name, email, phone }
-                : u
-        ));
+                <div className="mb-4">
 
-        setEditingUser(null);
+                    <input
 
-        setName("");
+                        type="text"
 
-        setEmail("");
+                        placeholder="Search by name..."
 
-        setPhone("");
+                        className="form-control"
 
-        alert("User updated successfully!");
+                        value={searchTerm}
 
-    } catch(err) {
+                        onChange={(e) => setSearchTerm(e.target.value)}
 
-        console.error(err);
+                    />
 
-        alert("Error updating user");
+                </div>
 
-    }
 
-};
+                {/* Update Form */}
 
-return (
+                {editingUser && (
 
-    <div className="container mt-5">
+                    <div className="card shadow-sm p-4 mb-4 bg-light">
 
-        <h2 className="text-center mb-4">
-            Registered Users
-        </h2>
+                        <h4 className="mb-3 text-primary">
 
-        {/* Search Input */}
+                            Edit User Details
 
-        <input
-            type="text"
-            placeholder="Search by name"
-            className="form-control mb-3"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+                        </h4>
 
-        {/* Update Form */}
+                        <form onSubmit={handleUpdate}>
 
-        {editingUser && (
+                            <div className="mb-3">
 
-            <form onSubmit={handleUpdate} className="mb-4">
+                                <label className="form-label">
 
-                <h4>Edit User</h4>
+                                    Full Name
 
-                <input
-                    type="text"
-                    className="form-control mb-2"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
+                                </label>
 
-                <input
-                    type="email"
-                    className="form-control mb-2"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+                                <input
 
-                <input
-                    type="text"
-                    className="form-control mb-2"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                />
+                                    type="text"
 
-                <button type="submit" className="btn btn-success me-2">
-                    Update
-                </button>
+                                    className="form-control"
 
-                <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setEditingUser(null)}
-                >
-                    Cancel
-                </button>
+                                    placeholder="Enter name"
 
-            </form>
+                                    value={name}
 
-        )}
+                                    onChange={(e) => setName(e.target.value)}
 
-        {/* Users Table */}
+                                    required
 
-        <div className="table-responsive">
+                                />
 
-            <table className="table table-bordered table-hover table-striped">
+                            </div>
 
-                <thead className="table-dark">
 
-                    <tr>
+                            <div className="mb-3">
 
-                        <th onClick={() => sortBy("name")} style={{ cursor: "pointer" }}>
-                            Name ↕
-                        </th>
+                                <label className="form-label">
 
-                        <th onClick={() => sortBy("email")} style={{ cursor: "pointer" }}>
-                            Email ↕
-                        </th>
+                                    Email Address
 
-                        <th>
-                            Phone
-                        </th>
+                                </label>
 
-                        <th>
-                            Action
-                        </th>
+                                <input
 
-                    </tr>
+                                    type="email"
 
-                </thead>
+                                    className="form-control"
 
-                <tbody>
+                                    placeholder="Enter email"
 
-                    {filteredUsers.length > 0 ? (
+                                    value={email}
 
-                        filteredUsers.map(user => (
+                                    onChange={(e) => setEmail(e.target.value)}
 
-                            <tr key={user.id}>
+                                    required
 
-                                <td>{user.name}</td>
+                                />
 
-                                <td>{user.email}</td>
+                            </div>
 
-                                <td>{user.phone}</td>
 
-                                <td>
+                            <div className="mb-3">
 
-                                    <button
-                                        className="btn btn-primary btn-sm me-2"
-                                        onClick={() => handleEdit(user)}
-                                    >
-                                        Edit
-                                    </button>
+                                <label className="form-label">
 
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => handleDelete(user.id)}
-                                    >
-                                        Delete
-                                    </button>
+                                    Phone Number
 
-                                </td>
+                                </label>
+
+                                <input
+
+                                    type="tel"
+
+                                    className="form-control"
+
+                                    placeholder="Enter phone number"
+
+                                    value={phone}
+
+                                    onChange={(e) => setPhone(e.target.value)}
+
+                                    required
+
+                                />
+
+                            </div>
+
+
+                            <button
+
+                                type="submit"
+
+                                className="btn btn-success me-2"
+
+                            >
+
+                                Update
+
+                            </button>
+
+
+                            <button
+
+                                type="button"
+
+                                className="btn btn-secondary"
+
+                                onClick={() => {
+
+                                    setEditingUser(null);
+
+                                    setName("");
+
+                                    setEmail("");
+
+                                    setPhone("");
+
+                                }}
+
+                            >
+
+                                Cancel
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                )}
+
+
+                {/* Users Table */}
+
+                <div className="table-responsive">
+
+                    <table className="table table-bordered table-hover table-striped align-middle">
+
+                        <thead className="table-dark">
+
+                            <tr>
+
+                                <th
+
+                                    onClick={() => sortBy("name")}
+
+                                    style={{ cursor: "pointer" }}
+
+                                >
+
+                                    Name ↕ 
+
+                                </th>
+
+
+                                <th
+
+                                    onClick={() => sortBy("email")}
+
+                                    style={{ cursor: "pointer" }}
+
+                                >
+
+                                    Email ↕
+
+                                </th>
+
+
+                                <th>
+
+                                    Phone
+
+                                </th>
+
+
+                                <th>
+
+                                    Action
+
+                                </th>
 
                             </tr>
 
-                        ))
+                        </thead>
 
-                    ) : (
 
-                        <tr>
+                        <tbody>
 
-                            <td colSpan="4" className="text-center">
-                                No users found
-                            </td>
+                            {filteredUsers.length > 0 ? (
 
-                        </tr>
+                                filteredUsers.map(user => (
 
-                    )}
+                                    <tr key={user.id}>
 
-                </tbody>
+                                        <td>{user.name}</td>
 
-            </table>
+                                        <td>{user.email}</td>
+
+                                        <td>{user.phone}</td>
+
+                                        <td>
+
+                                            <button
+
+                                                className="btn btn-primary btn-sm me-2 mb-1"
+
+                                                onClick={() => handleEdit(user)}
+
+                                            >
+
+                                                Edit
+
+                                            </button>
+
+
+                                            <button
+
+                                                className="btn btn-danger btn-sm mb-1"
+
+                                                onClick={() => handleDelete(user.id)}
+
+                                            >
+
+                                                Delete
+
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            ) : (
+
+                                <tr>
+
+                                    <td colSpan="4" className="text-center">
+
+                                        No users found
+
+                                    </td>
+
+                                </tr>
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
 
         </div>
 
-    </div>
-
-);
+    );
 
 }
 

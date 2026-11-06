@@ -4,6 +4,8 @@ import './index.css';
 import App from './App';
 import { db } from './firebase';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 console.log("Firebase Connected Successfully!", db);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

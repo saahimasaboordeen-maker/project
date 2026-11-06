@@ -43,7 +43,6 @@ function Registration() {
 
             setSuccessMessage("Registration successful!");
 
-            // Clear Form
             setName('');
             setEmail('');
             setPhone('');
@@ -58,65 +57,114 @@ function Registration() {
 
     return (
 
-        <div className="container mt-5">
+        <div className="container mt-5 mb-5">
 
-            <h2>Register</h2>
+            <div className="row justify-content-center">
 
-            <form onSubmit={handleSubmit}>
+                <div className="col-12 col-md-8 col-lg-6">
 
-                <div className="mb-3">
-                    <label htmlFor="name">Name</label>
+                    <div className="card shadow p-4">
 
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="form-control"
-                    />
+                        <h2 className="text-center mb-4">
+                            User Registration
+                        </h2>
+
+                        <form onSubmit={handleSubmit}>
+
+                            {/* Name */}
+                            <div className="mb-3">
+
+                                <label htmlFor="name" className="form-label">
+                                    Full Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    placeholder="Enter your full name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="form-control"
+                                    required
+                                    minLength="3"
+                                />
+
+                            </div>
+
+                            {/* Email */}
+                            <div className="mb-3">
+
+                                <label htmlFor="email" className="form-label">
+                                    Email Address
+                                </label>
+
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="example@gmail.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="form-control"
+                                    required
+                                />
+
+                            </div>
+
+                            {/* Phone */}
+                            <div className="mb-3">
+
+                                <label htmlFor="phone" className="form-label">
+                                    Phone Number
+                                </label>
+
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    placeholder="Enter 10 digit phone number"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className="form-control"
+                                    maxLength="10"
+                                    inputMode="numeric"
+                                    required
+                                />
+
+                            </div>
+
+                            {/* Submit Button */}
+                            <div className="d-grid">
+
+                                <button
+                                    type="submit"
+                                    className="btn btn-success btn-lg"
+                                >
+                                    Register
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                        {/* Success Message */}
+                        {successMessage && (
+
+                            <div className="alert alert-success mt-3" role="alert">
+                                {successMessage}
+                            </div>
+
+                        )}
+
+                    </div>
+
                 </div>
 
-                <div className="mb-3">
-                    <label htmlFor="email">Email</label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="form-control"
-                    />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="phone">Phone</label>
-
-                    <input
-                        type="text"
-                        id="phone"
-                        name="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="form-control"
-                    />
-                </div>
-
-                <button type="submit" className="btn btn-success">
-                    Submit
-                </button>
-
-            </form>
-
-            {/* Success Message */}
-            {successMessage && (
-                <div className="alert alert-success mt-3" role="alert">
-                    {successMessage}
-                </div>
-            )}
+            </div>
 
         </div>
+
     );
 }
 
